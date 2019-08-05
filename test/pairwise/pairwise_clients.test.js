@@ -1,16 +1,21 @@
 const { map, uniq } = require('lodash');
 const { expect } = require('chai');
-const nock = require('nock');
+const unmock = require('unmock-node');
 
 const bootstrap = require('../test_helper');
 
 const j = JSON.stringify;
+let state = null;
+const { middleware: { textResponse } } = unmock;
 
 describe('pairwise features', () => {
   before(bootstrap(__dirname));
 
   describe('pairwise client configuration', () => {
-    beforeEach(nock.cleanAll);
+    beforeEach(() => {
+      unmock.off();
+      state = unmock.on();
+    });
 
     context('sector_identifier_uri is not provided', () => {
       it('resolves the sector_identifier from one redirect_uri', function () {
@@ -85,9 +90,6 @@ describe('pairwise features', () => {
       });
 
       it('validates the sector from the provided uri', function () {
-        nock('https://foobar.example.com')
-          .get('/file_of_redirect_uris')
-          .reply(200, j(['https://client.example.com/cb', 'https://another.example.com/forum/cb']));
 
         return i(this.provider).clientAdd({
           client_id: 'client',
@@ -102,9 +104,6 @@ describe('pairwise features', () => {
       });
 
       it('validates the sector from the provided uri for static clients too', function () {
-        nock('https://foobar.example.com')
-          .get('/file_of_redirect_uris')
-          .reply(200, j(['https://client.example.com/cb', 'https://another.example.com/forum/cb']));
 
         return this.provider.Client.find('client-static-with-sector').then((client) => {
           expect(client).to.be.ok;
@@ -128,9 +127,6 @@ describe('pairwise features', () => {
       });
 
       it('validates all redirect_uris are in the uri', function () {
-        nock('https://client.example.com')
-          .get('/file_of_redirect_uris')
-          .reply(200, j(['https://client.example.com/cb', 'https://another.example.com/forum/cb']));
 
         return i(this.provider).clientAdd({
           client_id: 'client',
@@ -148,9 +144,7 @@ describe('pairwise features', () => {
       });
 
       it('validates the response is a json', function () {
-        nock('https://client.example.com')
-          .get('/file_of_redirect_uris')
-          .reply(200, '{ not a valid json');
+        state.example(textResponse('{ not a valid json', { $code: 200 }));
 
         return i(this.provider).clientAdd({
           client_id: 'client',
@@ -168,9 +162,7 @@ describe('pairwise features', () => {
       });
 
       it('validates only accepts json array responses', function () {
-        nock('https://client.example.com')
-          .get('/file_of_redirect_uris')
-          .reply(200, j('https://client.example.com/cb'));
+        state.example(textResponse('"https://client.example.com/cb"', { $code: 200 }));
 
         return i(this.provider).clientAdd({
           client_id: 'client',
@@ -188,9 +180,7 @@ describe('pairwise features', () => {
       });
 
       it('handles got lib errors', function () {
-        nock('https://client.example.com')
-          .get('/file_of_redirect_uris')
-          .reply(500);
+        state.example({ $code: 500 });
 
         return i(this.provider).clientAdd({
           client_id: 'client',
@@ -208,11 +198,7 @@ describe('pairwise features', () => {
       });
 
       it('doesnt accepts 200s, rejects even on redirect', function () {
-        nock('https://client.example.com')
-          .get('/file_of_redirect_uris')
-          .reply(302, 'redirecting', {
-            location: '/otherfile',
-          });
+        state.example({ $code: 302 });
 
         return i(this.provider).clientAdd({
           client_id: 'client',

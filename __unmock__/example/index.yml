@@ -1,0 +1,9 @@
+servers:
+- https://client.example.com
+- https://foobar.example.com
+paths:
+  /file_of_redirect_uris:
+    200:
+      text/plain: "['https://client.example.com/cb', 'https://another.example.com/forum/cb']"
+    302:
+      location: '/otherfile'
