@@ -6,7 +6,7 @@ const bootstrap = require('../test_helper');
 
 const j = JSON.stringify;
 let state = null;
-const { middleware: { textResponse } } = unmock;
+const { dsl: { textResponse } } = unmock;
 
 describe('pairwise features', () => {
   before(bootstrap(__dirname));
