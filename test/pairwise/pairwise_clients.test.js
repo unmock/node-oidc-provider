@@ -1,6 +1,6 @@
 const { map, uniq } = require('lodash');
 const { expect } = require('chai');
-const unmock = require('unmock-node').default;
+const unmock = require('unmock-node');
 
 const bootstrap = require('../test_helper');
 
@@ -13,8 +13,8 @@ describe('pairwise features', () => {
 
   describe('pairwise client configuration', () => {
     beforeEach(() => {
-      unmock.off();
-      state = unmock.on();
+      unmock.default.off();
+      state = unmock.default.on();
     });
 
     context('sector_identifier_uri is not provided', () => {
