@@ -1,6 +1,6 @@
 const { map, uniq } = require('lodash');
 const { expect } = require('chai');
-const unmock = require('unmock-node');
+const unmock = require('unmock-node').default;
 
 const bootstrap = require('../test_helper');
 
